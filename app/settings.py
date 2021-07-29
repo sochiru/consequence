@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
+from celery.schedules import crontab  # Other Celery settings
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -47,7 +48,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
-    # 'data',
+    'rest_framework_simplejwt',
+    'data',
     'api',
 ]
 
@@ -157,7 +159,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.DjangoModelPermissions',
     ],
     'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
@@ -183,5 +185,24 @@ INTEGRATIONS = {
     'TRUELAYER': {
         'HOST_AUTH': env.str('TRUELAYER_HOST_AUTH'),
         'HOST_API': env.str('TRUELAYER_HOST_API'),
+        'CLIENT_ID': env.str('TRUELAYER_CLIENT_ID'),
+        'SECRET': env.str('TRUELAYER_SECRET'),
+        'REDIRECT_URI': env.str('TRUELAYER_REDIRECT_URI')
     }
+}
+
+
+# CELERY STUFF
+CELERY_BROKER_URL = env.str('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = env.str('CELERY_RESULT_BACKEND')
+CELERY_ACCEPT_CONTENT = ['application/ json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+
+CELERY_BEAT_SCHEDULE = {
+    'task-number-one': {
+        'task': 'data.task.get_card_list',
+        'schedule': timedelta(seconds=5)
+    },
 }

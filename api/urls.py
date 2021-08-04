@@ -6,7 +6,7 @@ from rest_framework_simplejwt import views as jwt_views
 from .authentication.view import AuthLinkView, AuthCallbackView, UserLogoutView
 from .user.view.user import UserRegisterView
 from .cards.view import CardsViewSet, CardDetailViewSet, CardsTransactionsViewSet, CardsTransactionsPendingViewSet
-from .accounts.view import AccountsViewSet, AccountDetailViewSet, AccountTransactionsViewSet, AccountTransactionsPendingViewSet
+from .accounts.view import AccountsViewSet, AccountDetailViewSet, AccountTransactionsViewSet, AccountTransactionsPendingViewSet, AccountsWebhook
 
 
 urlpatterns = [
@@ -30,6 +30,8 @@ urlpatterns = [
          AccountTransactionsViewSet.as_view({'get': 'list'}), name='account-transactions'),
     path('accounts/<str:account_id>/transactions/pending',
          AccountTransactionsPendingViewSet.as_view({'get': 'list'}), name='account-transactions-pending'),
+
+    path('webhook/accounts', AccountsWebhook.as_view(), name='accounts-webhook'),
 
     # path('accounts', AccountsListView.as_view(), name='accounts_list'),
     # path('accounts/<str:account_id>', AccountsDetailView.as_view(), name='account_detail'),

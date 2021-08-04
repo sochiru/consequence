@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'data',
     'api',
+    'django_celery_results',
+    'django_celery_beat',
+    'task',
 ]
 
 MIDDLEWARE = [
@@ -193,17 +196,13 @@ INTEGRATIONS = {
 }
 
 
-# CELERY STUFF
-CELERY_BROKER_URL = env.str('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = env.str('CELERY_RESULT_BACKEND')
-CELERY_ACCEPT_CONTENT = ['application/ json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
+# REDIS
+REDIS_HOST = env.str('REDIS_HOST')
+REDIS_PORT = env.str('REDIS_PORT')
+REDIS_PREFIX = env.str('REDIS_PREFIX')
 
 
-CELERY_BEAT_SCHEDULE = {
-    'task-number-one': {
-        'task': 'data.task.get_card_list',
-        'schedule': timedelta(seconds=5)
-    },
-}
+# Celery
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BROKER_URL = 'redis://%s:%s' % (REDIS_HOST, REDIS_PORT)
+CELERY_RESULT_BACKEND = 'django-db'

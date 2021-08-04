@@ -77,6 +77,19 @@ class AuthCallbackView(APIView):
         return Response(res.json(), status=res.status_code)
 
 
+class AccountsWebhook(APIView):
+    authentication_classes = []  # disables authentication
+    permission_classes = []  # disables permission
+
+    def post(self, request):
+        """Exchange for token"""
+
+        data = request.data
+        print(data)
+
+        return Response()
+
+
 class UserLogoutView(APIView):
     """User logout view"""
     permission_classes = (IsAuthenticated,)

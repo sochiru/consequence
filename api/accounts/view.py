@@ -1,5 +1,5 @@
+from rest_framework.views import APIView
 from data.models.account_transaction import AccountTransaction, AccountTransactionPending
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from integrations.accounts import AccountsConnect
 from data.models.account import Account
@@ -9,7 +9,7 @@ from .serializer import AccountSerializer, AccountTransactionPendingSerializer, 
 from rest_framework import viewsets
 from django.conf import settings
 from django.core import signing
-from .helpers import sync_account_transactions, sync_accounts
+from .helpers import get_accounts, get_account_transactions, get_account_transactions_pending
 
 
 class AccountsViewSet(viewsets.ModelViewSet):
@@ -17,15 +17,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
     serializer_class = AccountSerializer
 
     def list(self, request, *args, **kwargs):
-        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
-        user_cred = UserCred.objects.filter(client_id=client_id).first()
-        if user_cred:
-            access_token = signing.loads(user_cred.access_token)
-            account_connect = AccountsConnect(token=access_token)
-            response = account_connect.get()
-
-            accounts_list = response.json()['results']
-            sync_accounts(accounts_list)
+        get_accounts()
         return super().list(request, *args, **kwargs)
 
 
@@ -45,17 +37,7 @@ class AccountTransactionsViewSet(viewsets.ModelViewSet):
 
     def list(self, request, account_id=None):
         account_obj = get_object_or_404(Account, account_id=account_id)
-        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
-        user_cred = UserCred.objects.filter(client_id=client_id).first()
-
-        if user_cred:
-            access_token = signing.loads(user_cred.access_token)
-            account_connect = AccountsConnect(token=access_token)
-            response = account_connect.get_account_transactions(account_id)
-
-            transasctions = response.json()['results']
-            print(transasctions)
-            sync_account_transactions(AccountTransaction, transasctions, account_obj)
+        get_account_transactions(account_id, account_obj)
 
         account_transactions = AccountTransaction.objects.filter(account=account_obj)
         serialized = AccountTransactionSerializer(account_transactions, many=True)
@@ -68,18 +50,21 @@ class AccountTransactionsPendingViewSet(viewsets.ModelViewSet):
 
     def list(self, request, account_id=None):
         account_obj = get_object_or_404(Account, account_id=account_id)
-        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
-        user_cred = UserCred.objects.filter(client_id=client_id).first()
+        get_account_transactions_pending(account_id, account_obj)
+        account_transactions_pending = AccountTransactionPending.objects.filter(account=account_obj)
 
-        if user_cred:
-            access_token = signing.loads(user_cred.access_token)
-            card_connect = AccountsConnect(token=access_token)
-            response = card_connect.get_account_transactions_pending(account_id)
-
-            transasctions_pending = response.json()['results']
-            sync_account_transactions(AccountTransactionPending, transasctions_pending, account_obj)
-
-        card_transactions = AccountTransactionPending.objects.filter(account=account_obj)
-
-        serialized = AccountTransactionPendingSerializer(card_transactions, many=True)
+        serialized = AccountTransactionPendingSerializer(account_transactions_pending, many=True)
         return Response(serialized.data)
+
+
+class AccountsWebhook(APIView):
+    authentication_classes = []  # disables authentication
+    permission_classes = []  # disables permission
+
+    def post(self, request):
+        """Exchange for token"""
+
+        data = request.data
+        print(data)
+
+        return Response()

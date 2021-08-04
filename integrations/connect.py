@@ -50,7 +50,7 @@ class TrueLayerConnect:
         else:
             full_url = self.host_auth + url
 
-        print(full_url, data)
+        print(full_url, query_params)
 
         # submit request
         response = requests.request(method.lower(), full_url, params=query_params, data=data, headers=merge_headers,

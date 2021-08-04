@@ -1,4 +1,10 @@
+from data.models.card_transaction import CardTransaction, CardTransactionPending
+from integrations.cards import CardsConnect
 from data.models.card import Card, CardProvider
+from django.conf import settings
+from django.core import signing
+from integrations.accounts import AccountsConnect
+from data.models.user_cred import UserCred
 
 
 def sync_cards(cards_list):
@@ -44,3 +50,41 @@ def sync_card_transactions(model, transaction_list, card):
                 'card': card
             }
         )
+
+
+def get_cards():
+    client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+    user_cred = UserCred.objects.filter(client_id=client_id).first()
+    if user_cred:
+        access_token = signing.loads(user_cred.access_token)
+        card_connect = CardsConnect(token=access_token)
+        response = card_connect.get()
+
+        cards_list = response.json()['results']
+        sync_cards(cards_list)
+
+
+def get_card_transactions(card_id, card_obj):
+    client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+    user_cred = UserCred.objects.filter(client_id=client_id).first()
+
+    if user_cred:
+        access_token = signing.loads(user_cred.access_token)
+        card_connect = CardsConnect(token=access_token)
+        response = card_connect.get_card_transactions(card_id)
+
+        transasctions = response.json()['results']
+        sync_card_transactions(CardTransaction, transasctions, card_obj)
+
+
+def get_card_transactions_pending(card_id, card_obj):
+    client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+    user_cred = UserCred.objects.filter(client_id=client_id).first()
+
+    if user_cred:
+        access_token = signing.loads(user_cred.access_token)
+        card_connect = CardsConnect(token=access_token)
+        response = card_connect.get_card_transactions_pending(card_id)
+
+        transasctions_pending = response.json()['results']
+        sync_card_transactions(CardTransactionPending, transasctions_pending, card_obj)

@@ -1,72 +1,85 @@
-from api.cards.serializer import CardSerializer
+from data.models.card_transaction import CardTransaction, CardTransactionPending
+from django.shortcuts import get_object_or_404
+from data.models.user_cred import UserCred
+from api.cards.serializer import CardSerializer, CardTransactionPendingSerializer, CardTransactionSerializer
 from rest_framework import viewsets
 from requests.models import Response
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from integrations.cards import CardsConnect
 from data.models.card import Card
+from django.conf import settings
+from django.core import signing
+from .helpers import sync_card_transactions,  sync_cards
 
 
-class CardsListView(APIView):
-    """Card list view"""
-
-    def get(self, request):
-        """Get cards list"""
-        card_connect = CardsConnect(token='')
-        response = card_connect.get()
-        return Response(response.json())
-
-
-class CardsDetailView(APIView):
-    """Card detail view"""
-
-    def get(self, request, card_id):
-        """Get cards detail"""
-        card_connect = CardsConnect(token='')
-        response = card_connect.get(card_id)
-        return Response(response.json())
-
-
-class CardsDetailBalanceView(APIView):
-    """Card detail balance view"""
-
-    def get(self, request, card_id):
-        """Get cards detail balance"""
-        card_connect = CardsConnect(token='')
-        response = card_connect.get_card_balance(card_id)
-        return Response(response.json())
-
-
-class CardsDetailTransactionsView(APIView):
-    """Card detail transactions view"""
-
-    def get(self, request, card_id):
-        """Get cards detail transactions"""
-        card_connect = CardsConnect(token='')
-        response = card_connect.get_card_transactions(card_id)
-        return Response(response.json())
-
-
-class CardsDetailTransactionsPendingView(APIView):
-    """Card detail transactions view"""
-
-    def get(self, request, card_id):
-        """Get cards detail transactions"""
-        card_connect = CardsConnect(token='')
-        response = card_connect.get_card_transactions_pending(card_id)
-        return Response(response.json())
-
-
-class CardsViewSet(viewsets.ReadOnlyModelViewSet):
+class CardsViewSet(viewsets.ModelViewSet):
     queryset = Card.objects.all()
     serializer_class = CardSerializer
 
     def list(self, request, *args, **kwargs):
+        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+        user_cred = UserCred.objects.filter(client_id=client_id).first()
+        if user_cred:
+            access_token = signing.loads(user_cred.access_token)
+            card_connect = CardsConnect(token=access_token)
+            response = card_connect.get()
+
+            cards_list = response.json()['results']
+            sync_cards(cards_list)
         return super().list(request, *args, **kwargs)
 
-    def retrieve(self, request, pk=None):
-        obj = Card.objects.filter(account_id=pk).first()
-        if obj:
-            serialized = CardSerializer(obj)
-            return Response(serialized.data)
-        return Response({'detail': 'Not Found.'})
+
+class CardDetailViewSet(viewsets.ModelViewSet):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
+    def retrieve(self, request, card_id=None):
+        obj = get_object_or_404(Card, account_id=card_id)
+        serialized = CardSerializer(obj)
+        return Response(serialized.data)
+
+
+class CardsTransactionsViewSet(viewsets.ModelViewSet):
+    queryset = CardTransaction.objects.all()
+    serializer_class = CardTransactionSerializer
+
+    def transactions(self, request, card_id=None):
+        card_obj = get_object_or_404(Card, account_id=card_id)
+        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+        user_cred = UserCred.objects.filter(client_id=client_id).first()
+
+        if user_cred:
+            access_token = signing.loads(user_cred.access_token)
+            card_connect = CardsConnect(token=access_token)
+            response = card_connect.get_card_transactions(card_id)
+
+            transasctions = response.json()['results']
+            sync_card_transactions(CardTransaction, transasctions, card_obj)
+
+        card_transactions = CardTransaction.objects.filter(card=card_obj)
+
+        serialized = CardTransactionSerializer(card_transactions, many=True)
+        return Response(serialized.data)
+
+
+class CardsTransactionsPendingViewSet(viewsets.ModelViewSet):
+    queryset = CardTransaction.objects.all()
+    serializer_class = CardTransactionSerializer
+
+    def transactions_pending(self, request, card_id=None):
+        card_obj = get_object_or_404(Card, account_id=card_id)
+        client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
+        user_cred = UserCred.objects.filter(client_id=client_id).first()
+
+        if user_cred:
+            access_token = signing.loads(user_cred.access_token)
+            card_connect = CardsConnect(token=access_token)
+            response = card_connect.get_card_transactions_pending(card_id)
+
+            transasctions_pending = response.json()['results']
+            sync_card_transactions(CardTransactionPending, transasctions_pending, card_obj)
+
+        card_transactions = CardTransactionPending.objects.filter(card=card_obj)
+
+        serialized = CardTransactionPendingSerializer(card_transactions, many=True)
+        return Response(serialized.data)

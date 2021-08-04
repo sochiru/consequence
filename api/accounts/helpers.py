@@ -1,30 +1,22 @@
-from data.models.card import Card, CardProvider
+from data.models.account import Account
 
 
-def sync_cards(cards_list):
-    for card in cards_list:
-        card_provider, _ = CardProvider.objects.update_or_create(
-            provider_id=card['provider']['provider_id'], defaults={
-                'display_name': card['provider']['display_name'],
-                'logo_uri': card['provider']['logo_uri'],
-            })
-
-        Card.objects.update_or_create(
-            account_id=card['account_id'],
+def sync_accounts(accounts_list):
+    for account in accounts_list:
+        Account.objects.update_or_create(
+            account_id=account['account_id'],
             defaults={
-                'card_network': card['card_network'],
-                'card_type': card['card_type'],
-                'currency': card['currency'],
-                'display_name': card['display_name'],
-                'partial_card_number': card['partial_card_number'],
-                'name_on_card': card['name_on_card'],
-                'update_timestamp': card['update_timestamp'],
-                'provider': card_provider
+                'account_type': account['account_type'],
+                'account_number': account['account_number'],
+                'currency': account['currency'],
+                'display_name': account['display_name'],
+                'update_timestamp': account['update_timestamp'],
+                'provider': account['provider']
             }
         )
 
 
-def sync_card_transactions(model, transaction_list, card):
+def sync_account_transactions(model, transaction_list, account):
     for transaction in transaction_list:
         model.objects.update_or_create(
             transaction_id=transaction['transaction_id'],
@@ -41,6 +33,6 @@ def sync_card_transactions(model, transaction_list, card):
                 'merchant_name': transaction['merchant_name'] if 'merchant_name' in transaction else None,
                 'running_balance': transaction['running_balance'] if 'running_balance' in transaction else None,
                 'meta': transaction['meta'],
-                'card': card
+                'account': account
             }
         )

@@ -1,7 +1,7 @@
 from data.models.card_transaction import CardTransaction, CardTransactionPending
 from django.shortcuts import get_object_or_404
 from data.models.user_cred import UserCred
-from api.cards.serializer import CardSerializer, CardTransactionPendingSerializer, CardTransactionSerializer
+from .serializer import CardSerializer, CardTransactionPendingSerializer, CardTransactionSerializer
 from rest_framework import viewsets
 from requests.models import Response
 from rest_framework.response import Response
@@ -9,7 +9,7 @@ from integrations.cards import CardsConnect
 from data.models.card import Card
 from django.conf import settings
 from django.core import signing
-from .helpers import sync_card_transactions,  sync_cards
+from .helpers import sync_card_transactions, sync_cards
 
 
 class CardsViewSet(viewsets.ModelViewSet):
@@ -57,7 +57,6 @@ class CardsTransactionsViewSet(viewsets.ModelViewSet):
             sync_card_transactions(CardTransaction, transasctions, card_obj)
 
         card_transactions = CardTransaction.objects.filter(card=card_obj)
-
         serialized = CardTransactionSerializer(card_transactions, many=True)
         return Response(serialized.data)
 

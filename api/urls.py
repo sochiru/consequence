@@ -6,7 +6,7 @@ from rest_framework_simplejwt import views as jwt_views
 from .authentication.view import AuthLinkView, AuthCallbackView, UserLogoutView
 from .user.view.user import UserRegisterView
 from .cards.view import CardsViewSet, CardDetailViewSet, CardsTransactionsViewSet, CardsTransactionsPendingViewSet
-from .accounts.view import AccountsListView, AccountsDetailView, AccountsDetailBalanceView, AccountsDetailTransactionsView, AccountsDetailTransactionsPendingView
+from .accounts.view import AccountsViewSet, AccountDetailViewSet, AccountTransactionsViewSet, AccountTransactionsPendingViewSet
 
 
 urlpatterns = [
@@ -18,18 +18,25 @@ urlpatterns = [
     path('users/register', UserRegisterView.as_view(), name='user-register'),
 
     path('cards', CardsViewSet.as_view({'get': 'list'}), name='cards-list'),
-    path('cards/<str:card_id>', CardDetailViewSet.as_view({'get': 'retrieve'}), name='cards-detail'),
+    path('cards/<str:card_id>', CardDetailViewSet.as_view({'get': 'retrieve'}), name='card-detail'),
     path('cards/<str:card_id>/transactions',
          CardsTransactionsViewSet.as_view({'get': 'transactions'}), name='card-transactions'),
     path('cards/<str:card_id>/transactions/pending',
          CardsTransactionsPendingViewSet.as_view({'get': 'transactions_pending'}), name='card-transactions-pending'),
 
-    path('accounts', AccountsListView.as_view(), name='accounts_list'),
-    path('accounts/<str:account_id>', AccountsDetailView.as_view(), name='account_detail'),
-    path('accounts/<str:account_id>/balance', AccountsDetailBalanceView.as_view(), name='account_detail_balance'),
-    path('accounts/<str:account_id>/transactions', AccountsDetailTransactionsView.as_view(), name='account_detail_transactions'),
+    path('accounts', AccountsViewSet.as_view({'get': 'list'}), name='accounts-list'),
+    path('accounts/<str:account_id>', AccountDetailViewSet.as_view({'get': 'retrieve'}), name='account-detail'),
+    path('accounts/<str:account_id>/transactions',
+         AccountTransactionsViewSet.as_view({'get': 'transactions'}), name='account-transactions'),
     path('accounts/<str:account_id>/transactions/pending',
-         AccountsDetailTransactionsPendingView.as_view(), name='account_detail_transactions_pending'),
+         AccountTransactionsPendingViewSet.as_view({'get': 'transactions_pending'}), name='account-transactions-pending'),
+
+    # path('accounts', AccountsListView.as_view(), name='accounts_list'),
+    # path('accounts/<str:account_id>', AccountsDetailView.as_view(), name='account_detail'),
+    # path('accounts/<str:account_id>/balance', AccountsDetailBalanceView.as_view(), name='account_detail_balance'),
+    # path('accounts/<str:account_id>/transactions', AccountsDetailTransactionsView.as_view(), name='account_detail_transactions'),
+    # path('accounts/<str:account_id>/transactions/pending',
+    #      AccountsDetailTransactionsPendingView.as_view(), name='account_detail_transactions_pending'),
 ]
 
 router = SimpleRouter(trailing_slash=False)

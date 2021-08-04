@@ -2,8 +2,8 @@
 from django.conf import settings
 from django.urls import path
 from rest_framework.routers import SimpleRouter, DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
-from .authentication.view import AuthView, AuthCallbackView
+from rest_framework_simplejwt import views as jwt_views
+from .authentication.view import AuthLinkView, AuthCallbackView, UserLogoutView
 from .user.view.user import UserRegisterView
 from .cards.view import CardsListView, CardsDetailView, CardsDetailBalanceView, CardsDetailTransactionsView,\
     CardsDetailTransactionsPendingView, CardsViewSet
@@ -11,9 +11,11 @@ from .accounts.view import AccountsListView, AccountsDetailView, AccountsDetailB
 
 
 urlpatterns = [
-    path('auth', AuthView.as_view(), name='get_link'),
-    path('auth/callback', AuthCallbackView.as_view(), name='token_obtain'),
-    # path('auth/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('jwt', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('jwt/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('jwt/logout', UserLogoutView.as_view(), name="logout"),
+    path('auth/link', AuthLinkView.as_view(), name='get_link'),
+    path('auth/callback', AuthCallbackView.as_view(), name='exchange_code'),
     path('users/register', UserRegisterView.as_view(), name='user_register'),
     # path('cards', CardsListView.as_view(), name='cards_list'),
     # path('cards/<str:card_id>', CardsDetailView.as_view(), name='card_detail'),
@@ -36,6 +38,7 @@ if settings.DEBUG:
 
 router.register('cards', CardsViewSet, basename='cards-list')
 router.register('cards/<pk:card_id>', CardsViewSet, basename='cards-detail')
+# router.register('cards/webhook', CardsHookViewSet, basename='cards-hook')
 
 
 urlpatterns += router.urls

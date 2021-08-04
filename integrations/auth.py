@@ -23,7 +23,10 @@ class AuthConnect(TrueLayerConnect):
             requests.Response: A request response
         """
 
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
         return self.fetch('post',
                           '/connect/token',
                           data=data,
+                          headers=headers,
                           is_api=is_api)

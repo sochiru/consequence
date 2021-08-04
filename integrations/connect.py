@@ -33,11 +33,7 @@ class TrueLayerConnect:
             query_params (dict): Dict of query parameters
             data (dict): Dict of payload
             headers (dict): Additional headers
-            use_admin_auth (bool): Force use admin credentials
-            add_pagination_params (bool): Force add pagination parameters if not found
-            domain_filter_name (string):
-                Domain filter set to be used
-                Domain filter configuration is in connectors.odoo.configs.domain.DOMAIN_FILTER_MAP
+            is_api (bool): is API type
         Returns:
             requests.Response: A request response
         """
@@ -54,7 +50,7 @@ class TrueLayerConnect:
         else:
             full_url = self.host_auth + url
 
-        print(data)
+        print(full_url, data)
 
         # submit request
         response = requests.request(method.lower(), full_url, params=query_params, data=data, headers=merge_headers,

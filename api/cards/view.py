@@ -43,7 +43,7 @@ class CardsTransactionsViewSet(viewsets.ModelViewSet):
     queryset = CardTransaction.objects.all()
     serializer_class = CardTransactionSerializer
 
-    def transactions(self, request, card_id=None):
+    def list(self, request, card_id=None):
         card_obj = get_object_or_404(Card, account_id=card_id)
         client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
         user_cred = UserCred.objects.filter(client_id=client_id).first()
@@ -65,7 +65,7 @@ class CardsTransactionsPendingViewSet(viewsets.ModelViewSet):
     queryset = CardTransaction.objects.all()
     serializer_class = CardTransactionSerializer
 
-    def transactions_pending(self, request, card_id=None):
+    def list(self, request, card_id=None):
         card_obj = get_object_or_404(Card, account_id=card_id)
         client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
         user_cred = UserCred.objects.filter(client_id=client_id).first()

@@ -1,4 +1,5 @@
 from data.models.account_transaction import AccountTransaction, AccountTransactionPending
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from integrations.accounts import AccountsConnect
 from data.models.account import Account
@@ -42,7 +43,7 @@ class AccountTransactionsViewSet(viewsets.ModelViewSet):
     queryset = AccountTransaction.objects.all()
     serializer_class = AccountTransactionSerializer
 
-    def transactions(self, request, account_id=None):
+    def list(self, request, account_id=None):
         account_obj = get_object_or_404(Account, account_id=account_id)
         client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
         user_cred = UserCred.objects.filter(client_id=client_id).first()
@@ -65,7 +66,7 @@ class AccountTransactionsPendingViewSet(viewsets.ModelViewSet):
     queryset = AccountTransactionPending.objects.all()
     serializer_class = AccountTransactionPendingSerializer
 
-    def transactions_pending(self, request, account_id=None):
+    def list(self, request, account_id=None):
         account_obj = get_object_or_404(Account, account_id=account_id)
         client_id = settings.INTEGRATIONS['TRUELAYER']['CLIENT_ID']
         user_cred = UserCred.objects.filter(client_id=client_id).first()

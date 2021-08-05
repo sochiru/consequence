@@ -4,7 +4,7 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter, DefaultRouter
 from rest_framework_simplejwt import views as jwt_views
 from .authentication.view import AuthLinkView, AuthCallbackView, UserLogoutView
-from .user.view.user import UserRegisterView
+from .user.view.user import UserRegisterView, UserInfoViewSet
 from .cards.view import CardsViewSet, CardDetailViewSet, CardsTransactionsViewSet, CardsTransactionsPendingViewSet
 from .accounts.view import AccountsViewSet, AccountDetailViewSet, AccountTransactionsViewSet, AccountTransactionsPendingViewSet, AccountsWebhook
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('jwt/logout', UserLogoutView.as_view(), name="logout"),
     path('auth/link', AuthLinkView.as_view(), name='auth-link'),
     path('auth/callback', AuthCallbackView.as_view(), name='exchange-code'),
+    path('me', UserInfoViewSet.as_view(), name='user-info'),
     path('users/register', UserRegisterView.as_view(), name='user-register'),
 
     path('cards', CardsViewSet.as_view({'get': 'list'}), name='cards-list'),

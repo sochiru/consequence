@@ -4,11 +4,8 @@ from rest_framework.response import Response
 from integrations.accounts import AccountsConnect
 from data.models.account import Account
 from django.shortcuts import get_object_or_404
-from data.models.user_cred import UserCred
 from .serializer import AccountSerializer, AccountTransactionPendingSerializer, AccountTransactionSerializer
 from rest_framework import viewsets
-from django.conf import settings
-from django.core import signing
 from .helpers import get_accounts, get_account_transactions, get_account_transactions_pending
 
 

@@ -1,7 +1,9 @@
 from copy import error
+from data.models.user_cred import UserCred
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,15 +13,20 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id',  'email', 'username', 'password']
+        fields = ('id',  'email', 'username', 'password')
 
     def validate(self, attrs):
         if User.objects.filter(email=attrs['email']):
             raise serializers.ValidationError({'email', ('Email exists')})
+        if User.objects.filter(email=attrs['username']):
+            raise serializers.ValidationError({'username', ('Username exists')})
         return super().validate(attrs)
 
     def create(self, validated_data):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.save()
+
+        UserCred.objects.create(user=user)
+
         return user

@@ -75,8 +75,8 @@ def get_account_transactions_pending(account_id, account_obj):
 
     if user_cred:
         access_token = signing.loads(user_cred.access_token)
-        card_connect = AccountsConnect(token=access_token)
-        response = card_connect.get_account_transactions_pending(account_id)
+        account_connect = AccountsConnect(token=access_token)
+        response = account_connect.get_account_transactions_pending(account_id)
 
         transasctions_pending = response.json()['results']
         sync_account_transactions(AccountTransactionPending, transasctions_pending, account_obj)

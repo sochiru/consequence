@@ -10,3 +10,4 @@ class UserCred(models.Model):
     token_type = models.TextField(null=True)
     refresh_token = models.TextField(null=True)
     scope = models.TextField(null=True)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, null=True)

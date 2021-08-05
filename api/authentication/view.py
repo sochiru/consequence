@@ -60,7 +60,7 @@ class AuthCallbackView(APIView):
         if res.status_code == 200:
             data = res.json()
 
-            obj, _ = UserCred.objects.update_or_create(
+            UserCred.objects.update_or_create(
                 client_id=client_id,
                 defaults={
                     'client_id': client_id,
@@ -71,8 +71,7 @@ class AuthCallbackView(APIView):
                     'scope': data['scope']
                 })
 
-            serializer = UserCredSerializer(obj)
-            return Response(serializer.data)
+            return HttpResponse('<script type="text/javascript">window.close(); </script>')
 
         return Response(res.json(), status=res.status_code)
 

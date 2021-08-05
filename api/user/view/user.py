@@ -30,8 +30,7 @@ class UserInfoViewSet(APIView):
         user_info = {
             'email': user.email,
             'username': user.username,
-            'has_client_id': True if user_cred.client_id else False,
-            'has_secret': True if user_cred.secret else False
+            'authorized': True if user_cred.access_token else False
         }
 
         return Response(user_info)

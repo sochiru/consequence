@@ -1,8 +1,8 @@
 from data.models.user_cred import UserCred
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ..serializers.user import UserSerializer
-from rest_framework.generics import CreateAPIView
+from ..serializers.user import ChangePasswordSerializer, UserSerializer
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 from ..serializers.user import UserSerializer
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
@@ -35,15 +35,25 @@ class UserInfoViewSet(APIView):
 
         return Response(user_info)
 
-    # def put(self, request):
-    #     user = get_user_model().objects.get(username=request.user.username)
-    #     user_cred = UserCred.objects.get(user=user)
+    def put(self, request):
+        user = get_user_model().objects.get(username=request.user.username)
 
-    #     client_id = request.data.get('client_id')
-    #     secret = request.data.get('secret')
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-    #     user_cred.client_id = client_id
-    #     user_cred.secret = signing.dumps(secret)
-    #     user_cred.save()
+        return Response(serializer.data)
 
-    #     return Response("success")
+
+class UserChangePasswordView(UpdateAPIView):
+    """User change password view"""
+    permission_classes = []  # disables permission
+
+    def update(self, request):
+        """Update user password"""
+        serializer = ChangePasswordSerializer(context={'request': request}, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.request.user.set_password(request.data['new_password'])
+        self.request.user.save()
+
+        return Response({'detail': 'success'})
